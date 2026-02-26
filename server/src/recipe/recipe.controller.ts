@@ -1,25 +1,41 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards,Request, Query, NotFoundException } from '@nestjs/common';
 import { RecipeService } from './recipe.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // Import your guard
 
 @Controller('recipe')
 export class RecipeController {
   constructor(private readonly recipeService: RecipeService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createRecipeDto: CreateRecipeDto) {
-    return this.recipeService.create(createRecipeDto);
+  create(@Body() createRecipeDto: any, @Request() req) {
+    // req.user is populated by the Guard from the JWT
+    const userId = req.user.userId; 
+    console.log('User ID from Token:', userId);
+    
+    return this.recipeService.create(createRecipeDto, userId);
   }
 
   @Get()
-  findAll() {
-    return this.recipeService.findAll();
+  findAll(
+    @Query('cuisineId') cuisineId?: number,
+    @Query('ingredientId') ingredientId?: number,
+    @Query('dietaryId') dietaryId?: number,
+  ) {
+    return this.recipeService.findAll({ cuisineId, ingredientId, dietaryId });
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.recipeService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const recipe = await this.recipeService.findOne(+id);
+    if (!recipe) {
+      // This is where we get "loud" for the frontend
+      throw new NotFoundException(`Recipe with ID ${id} does not exist`);
+    }
+  
+    return recipe;
   }
 
   @Patch(':id')

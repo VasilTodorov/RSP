@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException } from '@nestjs/common';
 import { IngredientService } from './ingredient.service';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
@@ -18,8 +18,15 @@ export class IngredientController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ingredientService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    //return this.ingredientService.findOne(+id);
+    const ingredient = await this.ingredientService.findOne(+id);
+    if (!ingredient) {
+      
+      throw new NotFoundException(`Recipe with ID ${id} does not exist`);
+    }
+      
+    return ingredient;
   }
 
   @Patch(':id')

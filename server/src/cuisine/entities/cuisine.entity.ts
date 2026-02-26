@@ -7,7 +7,7 @@ export class Cuisine {
     id: number;
 
     @Column({ unique: true })
-    title: string;
+    name: string;
 
     @OneToMany(() => Recipe, (recipe) => recipe.cuisine)
     recipes: Recipe[];

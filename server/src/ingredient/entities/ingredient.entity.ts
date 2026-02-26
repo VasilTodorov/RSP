@@ -7,7 +7,7 @@ export class Ingredient {
     id: number;
 
     @Column({ unique: true })
-    amount: string; // e.g., "200g" or "1 tablespoon"
+    name: string; // e.g., "200g" or "1 tablespoon"
 
     @OneToMany(() => RecipeIngredient, (ir) => ir.ingredient)
     recipeIngredients: RecipeIngredient[];

@@ -14,6 +14,7 @@ import { RecipeIngredient} from './recipe/entities/recipe-ingredient.entity';
 import { Ingredient } from './ingredient/entities/ingredient.entity';
 import { Cuisine} from './cuisine/entities/cuisine.entity';
 import { DietaryPreference } from './dietary_preferences/entities/dietary_preference.entity'
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
@@ -28,7 +29,7 @@ import { DietaryPreference } from './dietary_preferences/entities/dietary_prefer
       entities:[User, Recipe,RecipeIngredient, Ingredient, Cuisine, DietaryPreference],
       autoLoadEntities: true, // This is key! It finds your .entity.ts files automatically
       synchronize: true, // Set to false in production, but great for development
-    }),RecipeModule, IngredientModule, CuisineModule, DietaryPreferencesModule, UserModule],
+    }),RecipeModule, IngredientModule, CuisineModule, DietaryPreferencesModule, UserModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })

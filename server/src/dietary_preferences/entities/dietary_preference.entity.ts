@@ -6,7 +6,7 @@ export class DietaryPreference {
     @PrimaryGeneratedColumn()
     id: number;
     @Column({ unique: true })
-    NAME: string;
+    name: string;
     @ManyToMany(() => Recipe)  
     recipes: Recipe[];
 }

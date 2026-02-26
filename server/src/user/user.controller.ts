@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -17,14 +18,34 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+ @Get(':id')
+  async findOne(@Param('id') id: string) {
+    const user = await this.userService.findOne(+id);
+    
+    if (!user) {
+      // This is where we get "loud" for the frontend
+      throw new NotFoundException(`User with ID ${id} does not exist`);
+    }
+    
+    return user;
   }
 
+  @UseGuards(JwtAuthGuard) // 1. Must be logged in
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  async update(
+    @Param('id') id: string, 
+    @Body() updateUserDto: UpdateUserDto, 
+    @Request() req // 2. Access the logged-in user's info
+  ) {
+    const loggedInUserId = req.user.userId;
+    const targetUserId = +id;
+
+    // 3. The Guard Check: Compare IDs
+    if (loggedInUserId !== targetUserId) {
+      throw new ForbiddenException('You are not allowed to edit another user’s profile!');
+    }
+
+    return this.userService.update(targetUserId, updateUserDto);
   }
 
   @Delete(':id')

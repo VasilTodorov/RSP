@@ -1,5 +1,5 @@
 // src/recipes/entities/recipe.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, JoinTable, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, JoinTable, OneToMany, CreateDateColumn, UpdateDateColumn} from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Cuisine } from '../../cuisine/entities/cuisine.entity';
 import { DietaryPreference } from '../../dietary_preferences/entities/dietary_preference.entity';
@@ -13,14 +13,25 @@ export class Recipe {
   @Column()
   title: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   description: string;
 
   @Column('text')
   instructions: string;
 
+  @Column({ nullable: true }) // Not every recipe needs an image immediately
+  imageURL: string;
+
+  @CreateDateColumn() // Automatically set when the row is created
+  createdAt: Date;
+
+  @UpdateDateColumn() // Automatically updated whenever you call .save()
+  updatedAt: Date;
+
   // 1. Recipe -> User (Many-to-One)
-  @ManyToOne(() => User, (user) => user.recipes)
+  @ManyToOne(() => User, (user) => user.recipes, { 
+  onDelete: 'CASCADE' // <--- This is the magic line
+})
   author: User;
 
   // 2. Recipe -> Cuisine (Many-to-One)
