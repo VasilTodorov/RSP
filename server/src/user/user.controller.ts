@@ -3,22 +3,31 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import {AdminGuard} from '../auth/roles.guard';
 
 @Controller('user')
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  // @Post()
+  // create(@Body() createUserDto: CreateUserDto) {
+  //   return this.userService.create(createUserDto);
+  // }
+
+  @Get('me')
+  getProfile(@Request() req) {
+    return this.userService.findOne(req.user.userId);
   }
 
   @Get()
+  @UseGuards(AdminGuard)
   findAll() {
     return this.userService.findAll();
   }
 
  @Get(':id')
+ @UseGuards(AdminGuard)
   async findOne(@Param('id') id: string) {
     const user = await this.userService.findOne(+id);
     
@@ -30,7 +39,6 @@ export class UserController {
     return user;
   }
 
-  @UseGuards(JwtAuthGuard) // 1. Must be logged in
   @Patch(':id')
   async update(
     @Param('id') id: string, 
@@ -49,6 +57,7 @@ export class UserController {
   }
 
   @Delete(':id')
+  @UseGuards(AdminGuard)
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);
   }

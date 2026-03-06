@@ -1,20 +1,37 @@
+import { IsString, IsNotEmpty, IsOptional, IsUrl, IsArray, IsInt, ValidateNested, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { RecipeIngredientDto } from './recipe-ingredient.dto';
+
 export class CreateRecipeDto {
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(3)
   title: string;
-  description: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsString()
+  @IsNotEmpty()
   instructions: string;
-  
-  // The ID of the Cuisine (e.g., 1 for "Italian")
+
+  @IsUrl()
+  @IsOptional()
+  imageURL?: string;
+
+  @IsInt()
+  @IsNotEmpty()
   cuisineId: number;
 
-  // An array of IDs for Dietary Preferences (e.g., [1, 3] for "Vegan" and "Gluten-Free")
-  dietaryPreferenceIds: number[];
+  @IsArray()
+  @IsOptional()
+  @IsInt({ each: true })
+  dietaryPreferenceIds?: number[];
 
-  // This is the tricky part: An array of objects for the Custom Join Table
-  ingredientData: RecipeIngredientInput[];
-}
-
-// We define a small helper class/interface for the ingredients
-export class RecipeIngredientInput {
-  ingredientId: number; // The ID of the existing ingredient (e.g., "Salt")
-  amount: string;       // The specific amount for THIS recipe (e.g., "1 tsp")
+  @IsArray()
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => RecipeIngredientDto)
+  ingredientData: RecipeIngredientDto[]; 
 }

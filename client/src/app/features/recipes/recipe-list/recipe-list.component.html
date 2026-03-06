@@ -1,0 +1,82 @@
+<div class="feature-container">
+  <header class="list-header">
+    <h1>Explore Recipes</h1>
+    
+    <div class="search-bar">
+      <div class="input-group">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTitle" 
+          placeholder="Recipe name..."
+          class="search-input"
+        >
+      </div>
+
+      <div class="autocomplete-wrapper">
+        <input 
+          #ingInput
+          type="text" 
+          placeholder="Add ingredients (min. 3 chars)..."
+          (input)="onTypeIngredient($event)"
+          class="search-input"
+        >
+        
+        @if (ingredientResults().length > 0) {
+          <ul class="dropdown-results">
+            @for (ing of ingredientResults(); track ing.id) {
+              <li (click)="addIngredient(ing, ingInput)">
+                <span class="plus-icon">+</span> {{ ing.name }}
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <div class="button-group">
+        <button class="btn-primary" (click)="loadRecipes()" [disabled]="isLoading()">
+          @if (isLoading()) { Searching... } @else { Search }
+        </button>
+        <button class="btn-secondary" (click)="onReset()">Reset</button>
+      </div>
+    </div>
+
+    @if (selectedIngredients().length > 0) {
+      <div class="selected-ingredients-container">
+        <small>Filtering for recipes containing ALL of these:</small>
+        <div class="chips-list">
+          @for (ing of selectedIngredients(); track ing.id) {
+            <span class="chip">
+              {{ ing.name }}
+              <button class="remove-chip" (click)="removeIngredient(ing.id)" aria-label="Remove">×</button>
+            </span>
+          }
+        </div>
+      </div>
+    }
+  </header>
+
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <p>{{ errorMessage() }}</p>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loader-container">
+      <div class="spinner"></div>
+      <p>Gathering fresh recipes...</p>
+    </div>
+  } @else {
+    <div class="recipe-grid">
+      @for (recipe of recipes(); track recipe.id) {
+        <app-recipe-card [recipe]="recipe" />
+      } @empty {
+        <div class="empty-state">
+          <div class="empty-icon">🍳</div>
+          <h3>No recipes found</h3>
+          <p>Try removing some ingredients or checking your spelling.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

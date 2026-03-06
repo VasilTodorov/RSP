@@ -1,0 +1,60 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 2rem;
+  background-color: var(--white);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  .nav-brand {
+    cursor: pointer;
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      letter-spacing: -1px;
+    }
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+
+    a {
+      text-decoration: none;
+      color: var(--secondary-color);
+      font-weight: 500;
+      transition: color 0.2s;
+
+      &:hover { color: var(--primary-color); }
+    }
+
+    .user-email {
+      font-size: 0.9rem;
+      color: #666;
+      border-right: 1px solid #ddd;
+      padding-right: 1rem;
+    }
+
+    .btn-logout {
+      background: none;
+      border: 1px solid #ccc;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      &:hover { background: #eee; }
+    }
+
+    .btn-register {
+      background-color: var(--primary-color);
+      color: var(--white) !important;
+      padding: 0.5rem 1.2rem;
+      border-radius: 20px;
+      &:hover { background-color: var(--primary-dark); }
+    }
+  }
+}

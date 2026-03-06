@@ -1,1 +1,145 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --primary-color: #e67e22;    /* Carrot Orange */
+  --primary-dark: #d35400;    /* Pumpkin */
+  --secondary-color: #2c3e50;  /* Midnight Grey */
+  --bg-light: #f9f9f9;        /* Off-white */
+  --text-main: #333;
+  --error-red: #e74c3c;
+  --white: #ffffff;
+  --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-main);
+}
+
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 5rem; /* Space for navbar */
+  
+  .auth-card {
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 400px;
+
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: var(--secondary-color);
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+      
+      label {
+        display: block;
+        margin-bottom: 0.4rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+
+        &:focus {
+          border-color: var(--primary-color);
+          outline: none;
+        }
+      }
+
+      .error {
+        color: var(--error-red);
+        font-size: 0.8rem;
+        margin-top: 0.3rem;
+        display: block;
+      }
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.9rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background 0.2s;
+
+      &:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+      
+      &:hover:not(:disabled) {
+        background-color: var(--primary-dark);
+      }
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: bold;
+        &:hover { text-decoration: underline; }
+      }
+    }
+  }
+}
+
+.error-banner {
+  background-color: #fdf2f2;
+  border-left: 4px solid var(--error-red);
+  color: #9b1c1c;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  animation: shake 0.4s ease-in-out; 
+
+  .icon {
+    margin-right: 0.5rem;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.info-banner {
+  background-color: #e3f2fd; /* Light Blue */
+  border-left: 4px solid #2196f3;
+  color: #0d47a1;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+
+  .icon {
+    margin-right: 0.5rem;
+  }
+}

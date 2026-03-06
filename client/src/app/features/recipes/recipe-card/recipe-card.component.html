@@ -1,0 +1,27 @@
+<div class="card">
+  <div class="card-header">
+    <span class="cuisine-badge">{{ recipe().cuisine.name || 'General' }}</span>
+    <h3>{{ recipe().title }}</h3>
+  </div>
+
+  <div class="card-body">
+    <p class="description">{{ recipe().description || 'A delicious secret recipe...' }}</p>
+    
+    <div class="section">
+      <strong>Essential Ingredients:</strong>
+      <div class="tag-cloud">
+        @for (ri of recipe().recipeIngredients; track ri.ingredientId) {
+          <span class="ingredient-tag">
+            {{ ri.ingredient.name }} 
+            <small>({{ ri.amount }})</small>
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <span class="author">By: {{ recipe().author.email.split('@')[0] }}</span>
+    <!-- <button class="btn-details">View Full Recipe</button> -->
+  </div>
+</div>

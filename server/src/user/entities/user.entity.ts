@@ -12,6 +12,9 @@ export class User {
   @Column()
   password: string; // Remember to hash this!
 
+  @Column({ default: 'user' }) 
+  role: string; // 'user' or 'admin'
+
   @OneToMany(() => Recipe, (recipe) => recipe.author)
   recipes: Recipe[];
 }

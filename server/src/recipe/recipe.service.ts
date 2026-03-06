@@ -5,18 +5,26 @@ import { Recipe } from './entities/recipe.entity';
 import { RecipeIngredient } from './entities/recipe-ingredient.entity';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
+import { ILike } from 'typeorm';
 
 @Injectable()
 export class RecipeService {
   constructor(
     @InjectRepository(Recipe)
-    private recipeRepository: Repository<Recipe>,
-    
+    private recipeRepository: Repository<Recipe>,  
     @InjectRepository(RecipeIngredient)
     private recipeIngredientRepository: Repository<RecipeIngredient>,
-
     private dataSource: DataSource, // Used for transactions
   ) {}
+
+  async updateImage(recipeId: number, imagePath: string) {
+    const recipe = await this.recipeRepository.findOneBy({ id: recipeId });
+    if (!recipe) throw new NotFoundException('Recipe not found');
+    
+    recipe.imageURL = imagePath;
+    return this.recipeRepository.save(recipe);
+  }
+  
   async create(createRecipeDto: CreateRecipeDto, userId: number) {
     const { ingredientData, cuisineId, dietaryPreferenceIds, ...recipeDetails } = createRecipeDto;
 
@@ -47,8 +55,22 @@ export class RecipeService {
 
         await queryRunner.manager.save(recipeIngredients);
       }
+      const fullRecipe = await queryRunner.manager.findOne(Recipe, {
+        where: { id: savedRecipe.id },
+        relations: [
+          'author', 
+          'cuisine', 
+          'dietaryPreferences', 
+          'recipeIngredients', 
+          'recipeIngredients.ingredient'
+        ],
+        // Same select logic as findOne
+        select: {
+          author: { id: true, email: true }
+        }
+      });
       await queryRunner.commitTransaction();
-      return savedRecipe;
+      return fullRecipe;
 
     } catch (err) {
       await queryRunner.rollbackTransaction();
@@ -57,37 +79,42 @@ export class RecipeService {
       await queryRunner.release();
     }
   }
+async findAll(query: { title?: string, cuisineId?: number; ingredientIds?: number[]; dietaryId?: number }) {
+    const { title, cuisineId, ingredientIds, dietaryId } = query;
 
-  async findAll(query: { cuisineId?: number; ingredientId?: number; dietaryId?: number }) {
-  const { cuisineId, ingredientId, dietaryId } = query;
+    const qb = this.recipeRepository.createQueryBuilder('recipe')
+      .leftJoinAndSelect('recipe.author', 'author')
+      .leftJoinAndSelect('recipe.cuisine', 'cuisine')
+      .leftJoinAndSelect('recipe.dietaryPreferences', 'dietaryPreferences')
+      .leftJoinAndSelect('recipe.recipeIngredients', 'ri')
+      .leftJoinAndSelect('ri.ingredient', 'ingredient');
 
-  return await this.recipeRepository.find({
-    where: {
-      // Filter by Cuisine
-      cuisine: cuisineId ? { id: cuisineId } : {},
+    // Filter by Title
+    if (title) qb.andWhere('recipe.title ILIKE :title', { title: `%${title}%` });
 
-      // Filter by Dietary Preference
-      dietaryPreferences: dietaryId ? { id: dietaryId } : {},
+    // Filter by Cuisine
+    if (cuisineId) qb.andWhere('recipe.cuisineId = :cuisineId', { cuisineId });
 
-      // Filter by Ingredient (Requires joining the recipeIngredients table)
-      recipeIngredients: ingredientId ? { ingredientId: ingredientId } : {},
-    },
-    relations: {
-      author: true,
-      cuisine: true,
-      dietaryPreferences: true,
-      recipeIngredients: {
-        ingredient: true,
-      },
-    },
-    select: {
-        author: {
-          id: true,
-          email: true,
-        },
-      },
-  });
-}
+    // Filter by Dietary
+    if (dietaryId) qb.andWhere('dietaryPreferences.id = :dietaryId', { dietaryId });
+
+    // THE "AND" LOGIC: This ensures the recipe has ALL requested ingredients
+    if (ingredientIds && ingredientIds.length > 0) {
+      qb.andWhere((sub) => {
+        const query = sub.subQuery()
+          .select('res.id')
+          .from(Recipe, 'res')
+          .innerJoin('res.recipeIngredients', 'ri')
+          .where('ri.ingredientId IN (:...ids)', { ids: ingredientIds })
+          .groupBy('res.id')
+          .having('COUNT(DISTINCT ri.ingredientId) = :count', { count: ingredientIds.length })
+          .getQuery();
+        return 'recipe.id IN ' + query;
+      });
+    }
+
+    return await qb.orderBy('recipe.title', 'ASC').getMany();
+  }
 
   async findOne(id: number) {
   return await this.recipeRepository.findOne({
@@ -108,7 +135,7 @@ export class RecipeService {
     });
   }
 
-  async update(id: number, updateRecipeDto: any) {   
+  async update(id: number, updateRecipeDto: UpdateRecipeDto) {   
   const recipeExists = await this.recipeRepository.findOneBy({ id });
   if (!recipeExists) {
     throw new NotFoundException(`Recipe with ID ${id} not found`);

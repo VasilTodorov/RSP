@@ -1,0 +1,81 @@
+.card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  padding: 1.5rem 1.5rem 0.5rem;
+}
+
+.cuisine-badge {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: #ef4444; /* Culinary red */
+  letter-spacing: 0.05em;
+}
+
+h3 { margin: 0.2rem 0 0; color: #1f2937; }
+
+.card-body {
+  padding: 0 1.5rem;
+  flex-grow: 1;
+}
+
+.description {
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.ingredient-tag {
+  background: #f3f4f6;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: #374151;
+}
+
+.card-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.author { font-size: 0.75rem; color: #9ca3af; }
+
+.btn-details {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.btn-details:hover {
+  background: #ef4444;
+  color: white;
+}

@@ -1,0 +1,14 @@
+<div class="home-container">
+      @if (authService.isLoggedIn()) {
+        <h1>Welcome back, Chef!</h1>
+        <p>You are logged in as: <strong>{{ authService.currentUser()?.email }}</strong></p>
+        <button routerLink="/recipes" class="btn-primary">View My Recipes</button>
+      } @else {
+        <h1>Delicious Recipes Await</h1>
+        <p>Join our community to save and share your favorite dishes.</p>
+        <div class="actions">
+          <button routerLink="/register" class="btn-primary">Get Started</button>
+          <button routerLink="/login" class="btn-secondary">Sign In</button>
+        </div>
+      }
+</div>

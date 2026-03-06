@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Ingredient } from './entities/ingredient.entity';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
+import { ILike } from 'typeorm';
 
 @Injectable()
 export class IngredientService {
@@ -13,22 +14,28 @@ export class IngredientService {
   ) {}
 
   async create(createIngredientDto: CreateIngredientDto) {
-    // Check if it already exists to avoid the Unique Constraint error
-    const existing = await this.ingredientRepository.findOne({ 
-      where: { name: createIngredientDto.name } 
-    });
-    
-    if (existing) {
-      throw new ConflictException(`Ingredient "${createIngredientDto.name}" already exists`);
+    try {
+      // Normalize before sending to DB
+      createIngredientDto.name = createIngredientDto.name.toLowerCase().trim();
+      
+      const newIngredient = this.ingredientRepository.create(createIngredientDto);
+      return await this.ingredientRepository.save(newIngredient);
+      
+    } catch (error) {
+      // Catching the database's "No"
+      if (error.code === '23505') {
+        throw new ConflictException(`Ingredient "${createIngredientDto.name}" already exists`);
+      }
+      throw error;
     }
-
-    const newIngredient = this.ingredientRepository.create(createIngredientDto);
-    return await this.ingredientRepository.save(newIngredient);
   }
 
-  findAll() {
-    return this.ingredientRepository.find({ order: { name: 'ASC' } });
-  }
+  async findAll(name?: string) {
+  return await this.ingredientRepository.find({
+    where: name ? { name: ILike(`${name}%`) } : {},
+    order: { name: 'ASC' }, // Nice for frontend lists
+  });
+}
 
   async findOne(id: number) {
     return await this.ingredientRepository.findOne({ where: { id } });
@@ -36,47 +43,50 @@ export class IngredientService {
   }
 
   async update(id: number, updateIngredientDto: UpdateIngredientDto) {
-  // 1. Sanitize the incoming name
-  if (updateIngredientDto.name) {
+    try {
+      // 1. We sanitize the name if it's being updated
+      if (updateIngredientDto.name) {
+        updateIngredientDto.name = updateIngredientDto.name.toLowerCase().trim();
+      }
 
-    // 2. THE PROACTIVE CHECK: Does another ingredient already have this name?
-    const existingWithSameName = await this.ingredientRepository.findOne({
-      where: { name: updateIngredientDto.name }
-    });
+      const result = await this.ingredientRepository.update(id, updateIngredientDto);
 
-    // If we found one, and it's NOT the one we are currently editing
-    if (existingWithSameName && existingWithSameName.id !== id) {
-      throw new ConflictException(
-        `Cannot rename to "${updateIngredientDto.name}" because that name is already in use.`
-      );
+      if (result.affected === 0) {
+        throw new NotFoundException(`Ingredient #${id} not found`);
+      }
+
+      return await this.findOne(id);
+
+    } catch (error) {
+      // 2. Check if the error is a "Unique Violation" (Postgres code 23505)
+      if (error.code === '23505') {
+        throw new ConflictException(
+          `An ingredient with the name "${updateIngredientDto.name}" already exists.`
+        );
+      }
+      // 3. If it's something else, throw the original error
+      throw error;
     }
   }
-
-  // 3. Perform the update now that we know the coast is clear
-  const result = await this.ingredientRepository.update(id, updateIngredientDto);
-
-  if (result.affected === 0) {
-    throw new NotFoundException(`Ingredient #${id} not found`);
-  }
-
-  return this.findOne(id);
-}
 
   async remove(id: number) {
-    // SECURITY CHECK: Is this ingredient being used in any recipes?
-    const ingredient = await this.ingredientRepository.findOne({
-      where: { id },
-      relations: ['recipeIngredients'],
-    });
+  try {
+    const result = await this.ingredientRepository.delete(id);
 
-    if (!ingredient) throw new NotFoundException(`Ingredient #${id} not found`);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Ingredient #${id} not found`);
+    }
+    
+    return { message: 'Ingredient deleted successfully' };
 
-    if (ingredient.recipeIngredients.length > 0) {
+  } catch (error) {
+    // Postgres code '23503' is a Foreign Key Violation
+    if (error.code === '23503') {
       throw new ConflictException(
-        `Cannot delete "${ingredient.name}" because it is used in ${ingredient.recipeIngredients.length} recipes.`,
+        `This ingredient cannot be deleted because it is currently used in one or more recipes.`
       );
     }
-
-    return await this.ingredientRepository.delete(id);
+    throw error;
   }
+}
 }
