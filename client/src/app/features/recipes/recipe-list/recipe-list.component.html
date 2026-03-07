@@ -2,69 +2,45 @@
   <header class="list-header">
     <h1>Explore Recipes</h1>
     
-    <div class="search-bar">
-      <div class="input-group">
+    <div class="filter-panel">
+      <div class="filter-group">
+        <label>Search by Title</label>
         <input 
           type="text" 
           [(ngModel)]="searchTitle" 
-          placeholder="Recipe name..."
-          class="search-input"
+          placeholder="e.g. Pasta..."
+          class="form-input"
         >
       </div>
 
-      <div class="autocomplete-wrapper">
-        <input 
-          #ingInput
-          type="text" 
-          placeholder="Add ingredients (min. 3 chars)..."
-          (input)="onTypeIngredient($event)"
-          class="search-input"
-        >
-        
-        @if (ingredientResults().length > 0) {
-          <ul class="dropdown-results">
-            @for (ing of ingredientResults(); track ing.id) {
-              <li (click)="addIngredient(ing, ingInput)">
-                <span class="plus-icon">+</span> {{ ing.name }}
-              </li>
-            }
-          </ul>
-        }
+      <div class="filter-group">
+        <label>Ingredients (AND Search)</label>
+        <app-ingredient-search 
+          (onSelectionChange)="onIngredientsChanged($event)" 
+        />
       </div>
 
-      <div class="button-group">
+      <div class="filter-actions">
         <button class="btn-primary" (click)="loadRecipes()" [disabled]="isLoading()">
-          @if (isLoading()) { Searching... } @else { Search }
+          {{ isLoading() ? 'Searching...' : 'Find Recipes' }}
         </button>
-        <button class="btn-secondary" (click)="onReset()">Reset</button>
+        <button class="btn-text" (click)="onReset()">Reset</button>
       </div>
     </div>
-
-    @if (selectedIngredients().length > 0) {
-      <div class="selected-ingredients-container">
-        <small>Filtering for recipes containing ALL of these:</small>
-        <div class="chips-list">
-          @for (ing of selectedIngredients(); track ing.id) {
-            <span class="chip">
-              {{ ing.name }}
-              <button class="remove-chip" (click)="removeIngredient(ing.id)" aria-label="Remove">×</button>
-            </span>
-          }
-        </div>
-      </div>
-    }
   </header>
 
+  <hr class="divider">
+
   @if (errorMessage()) {
-    <div class="error-banner">
-      <p>{{ errorMessage() }}</p>
+    <div class="error-alert">
+      {{ errorMessage() }}
     </div>
   }
 
   @if (isLoading()) {
-    <div class="loader-container">
+    <div class="loading-state">
       <div class="spinner"></div>
-      <p>Gathering fresh recipes...</p>
+      <p>Sharpening the knives...</p>
     </div>
   } @else {
     <div class="recipe-grid">
@@ -72,9 +48,8 @@
         <app-recipe-card [recipe]="recipe" />
       } @empty {
         <div class="empty-state">
-          <div class="empty-icon">🍳</div>
-          <h3>No recipes found</h3>
-          <p>Try removing some ingredients or checking your spelling.</p>
+          <p>No recipes found matching your criteria.</p>
+          <button class="btn-secondary" (click)="onReset()">Show all recipes</button>
         </div>
       }
     </div>

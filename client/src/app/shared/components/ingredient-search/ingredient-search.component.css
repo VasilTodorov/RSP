@@ -1,0 +1,165 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.search-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 1. The Input & Dropdown Wrapper */
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #ef4444; /* Match your "Culinary Red" */
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+/* 2. Floating Dropdown Menu */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  list-style: none;
+  padding: 8px 0;
+  margin: 0;
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.dropdown li {
+  padding: 10px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #374151;
+  font-weight: 500;
+  transition: background 0.15s ease;
+}
+
+
+.dropdown li::before {
+  content: '+';
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #9ca3af;
+}
+.dropdown li.active::before {
+  color: #ef4444;
+}
+
+/* 3. The Chips (Selected Ingredients) */
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  background-color: #ef4444;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  animation: popIn 0.2s ease-out;
+}
+
+.chip button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+.chip button:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Animations */
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Custom Scrollbar for the dropdown */
+.dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.search-input:disabled {
+  background-color: #f9fafb;
+  cursor: not-allowed;
+  border-style: dashed;
+  color: #9ca3af;
+}
+
+.no-results {
+  padding: 10px 16px;
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 0.9rem;
+  pointer-events: none; /* Can't click "No results" */
+}
+
+.exhausted-message {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #f0fdf4; /* Light green */
+  border: 2px dashed #22c55e; /* Green border */
+  border-radius: 10px;
+  color: #15803d;
+  font-weight: 600;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown li.active {
+  background-color: #fff1f2; /* Light red tint */
+  color: #ef4444;
+  outline: none;
+}

@@ -3,79 +3,78 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RecipeService } from '../../../core/services/recipe.service';
 import { Recipe } from '../../../core/models/recipe.model';
-import { RecipeCardComponent } from '../recipe-card/recipe-card.component';
-import { IngredientService } from '../../../core/services/ingredient.service';
 import { Ingredient } from '../../../core/models/ingredient.model';
+import { RecipeCardComponent } from '../recipe-card/recipe-card.component';
+import { IngredientSearchComponent } from '../../../shared/components/ingredient-search/ingredient-search.component';
+import { ViewChild } from '@angular/core'; // Import this
 
 @Component({
   selector: 'app-recipe-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RecipeCardComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RecipeCardComponent, 
+    IngredientSearchComponent
+  ],
   templateUrl: './recipe-list.component.html',
   styleUrl: './recipe-list.component.css'
 })
 export class RecipeListComponent implements OnInit {
-  private ingredientService = inject(IngredientService);
-
-  ingredientResults = signal<Ingredient[]>([]);
-  selectedIngredients = signal<Ingredient[]>([]);
-
+  @ViewChild(IngredientSearchComponent) ingredientSearch!: IngredientSearchComponent;
   private recipeService = inject(RecipeService);
 
+  // --- Data State ---
   recipes = signal<Recipe[]>([]);
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
 
+  // --- Search Filters ---
   searchTitle = signal('');
-  ingredientIdsInput = signal(''); // Users type "1, 2"
+  selectedIngredientIds = signal<number[]>([]);
 
   ngOnInit() {
-    this.loadRecipes();
+    this.loadRecipes(); // Load everything on start
   }
 
-  
-  loadRecipes() {
-  // Get the IDs from our objects: [ {id: 1, name: 'Tomato'} ] -> [1]
-  const ids = this.selectedIngredients().map(ing => ing.id);
+  // Receives the array from the IngredientSearchComponent
+  onIngredientsChanged(ingredients: Ingredient[]) {
+    const ids = ingredients.map(i => i.id);
+    this.selectedIngredientIds.set(ids);
+  }
 
-  this.recipeService.getRecipes({
-    title: this.searchTitle(),
-    ingredientIds: ids.length > 0 ? ids : undefined
-  }).subscribe(data => this.recipes.set(data));
-}
+  loadRecipes() {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    this.recipeService.getRecipes({
+      title: this.searchTitle(),
+      ingredientIds: this.selectedIngredientIds().length > 0 
+        ? this.selectedIngredientIds() 
+        : undefined
+    }).subscribe({
+      next: (data) => {
+        this.recipes.set(data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Search Error:', err);
+        this.errorMessage.set('Could not fetch recipes. Please try again.');
+        this.isLoading.set(false);
+      }
+    });
+  }
 
   onReset() {
+    // 1. Clear Parent's own state
     this.searchTitle.set('');
-    this.ingredientIdsInput.set('');
-    this.loadRecipes();
-  }
-
-  onTypeIngredient(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-
-    // THE 3 CHAR RULE: Only call the server if we have enough letters
-    if (value.length >= 3) {
-      this.ingredientService.searchIngredients(value).subscribe(results => {
-        this.ingredientResults.set(results);
-      });
-    } else {
-      this.ingredientResults.set([]); // Clear results if backspaced
-    }
-  }
-
-  // 2. Add to your "AND" search list
-  addIngredient(ing: Ingredient, inputField: HTMLInputElement) {
-    // Only add if not already in the list
-    if (!this.selectedIngredients().some(i => i.id === ing.id)) {
-      this.selectedIngredients.update(list => [...list, ing]);
-    }
     
-    // Clear everything to reset the UI
-    this.ingredientResults.set([]); 
-    inputField.value = ''; 
-  }
+    // 2. Tell the Child to reset itself!
+    if (this.ingredientSearch) {
+      this.ingredientSearch.reset();
+    }
 
-  removeIngredient(id: number) {
-    this.selectedIngredients.update(list => list.filter(i => i.id !== id));
+    // 3. Re-run the search to show all recipes
+    this.loadRecipes();
   }
 }

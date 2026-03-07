@@ -1,0 +1,48 @@
+<div class="search-container">
+  <div class="input-wrapper">
+    
+    @if (!isListExhausted()) {
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (ngModelChange)="onSearch()"       
+        (focus)="onSearch()"
+        
+        appAutocompleteNav
+        [listLength]="filteredResults().length"
+        [(activeIndex)]="activeIndex"
+        (selectOption)="handleSelection()"
+        (escPressed)="closeResults()"
+
+        class="search-input"
+        placeholder="Search ingredients..."
+      >
+      
+    @if (results().length > 0 && filteredResults().length > 0) {
+      <ul class="dropdown" role="listbox" (mouseleave)="activeIndex.set(-1)">
+      @for (ing of filteredResults(); track ing.id; let i = $index) {
+        <li 
+        (click)="add(ing)"
+        [class.active]="activeIndex() === i"
+        (mouseenter)="activeIndex.set(i)"     
+        role="option"
+        >{{ ing.name }}</li>
+      }
+      </ul>
+    }
+    } @else {
+      <div class="exhausted-message">
+        <span>✓ All available ingredients added</span>
+      </div>
+    }
+  </div>
+
+  <div class="chips-container">
+    @for (ing of selected(); track ing.id) {
+      <span class="chip">
+        {{ ing.name }}
+        <button (click)="remove(ing.id)">×</button>
+      </span>
+    }
+  </div>
+</div>
